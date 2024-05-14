@@ -27,6 +27,11 @@ is_file() {
 	[ -f "$path" ]
 }
 
+if [ $# -eq 0 ]; then
+    usage
+    exit 1
+fi
+
 case "$1" in -h|--help)
 	usage
 	exit 0
