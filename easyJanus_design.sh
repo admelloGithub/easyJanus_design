@@ -1,20 +1,29 @@
 #!/bin/bash
 
 usage() {
-	echo "Usage: $0 [-t /path/to/targets.txt] [-f /path/to/genome.fasta] [-o /path/to/output_directory] [-c|-d]" >&2
+	echo "" >&2
+	echo "Usage: $0 [-f /path/to/genome.fasta] [-t /path/to/targets.txt]  [-o /path/to/output_directory] [-c or -d]" >&2
+	echo "" >&2
 	echo "Required options:" >&2
-	echo " -t : Full path to a file containing a list of targets in 4 columns:" >&2
+	echo "" >&2
+	echo " -t : Full path to a file containing a list of targets in 4 columns listed below:" >&2
 	echo "		contig_name - From the genome.fasta with no spaces or special characters (except underscores) " >&2
 	echo "		target_name - No spaces or special characters (except underscores) " >&2
 	echo "		start coordinate (digits)"  >&2
 	echo "		end coordinate (digits)"  >&2
-	echo "			Columns are separated by spaces or tabs"  >&2
-	echo "			start > end if target is on the reverse strand"  >&2
+	echo "       Columns are separated by spaces or tabs"  >&2
+	echo "       start > end if target is on the reverse strand"  >&2
+	echo "" >&2
 	echo " -f : Full path to a genome nucleotide sequence file in (multi)fasta format without duplicated headers " >&2
+	echo "" >&2
 	echo " -o : Full path to an output directory where files can be written " >&2
-	echo " -c|-d : -c for circular replicons without overlapping ends or -d for draft or linear genomes" >&2	
-	echo "Example command: $0 -f /home/user/Documents/TIGR4.fasta -t /home/user/Documents/targets.txt -o /home/user/Documents/easyJanus_output -c "
-	echo "The generated files will be in /home/user/Documents/easyJanus_output " 
+	echo "" >&2
+	echo " -c or -d : -c for circular replicons without overlapping ends or -d for draft or linear genomes" >&2	
+	echo "" >&2
+	echo "Example command: $0 -f /path/to/folder/TIGR4.fasta -t /path/to/folder/targets.txt -o /path/to/folder/easyJanus_output -c "
+	echo "" >&2
+	echo "The generated files will be in /path/to/folder/easyJanus_output " 
+	echo "" >&2
 }
 
 is_dir() {
@@ -26,11 +35,6 @@ is_file() {
 	local path=$1
 	[ -f "$path" ]
 }
-
-if [ $# -eq 0 ]; then
-    usage
-    exit 1
-fi
 
 case "$1" in -h|--help)
 	usage
@@ -90,16 +94,29 @@ while getopts ":t:f:o:cd" opt; do
 	esac
 done
 
+if [ -z "$tf" ] || [ -z "$gf" ] || [ -z "$od" ] || [ -z "$flag" ] ; then
+	echo "Error: Missing required arguments" >&2
+	usage
+	exit 1
+fi
+
 base=$(basename "${tf%.*}")
 
-sudo docker run -v $tf:/app/targets.txt -v $gf:/app/input.fasta -v $od:/app/output/ admellodocker/easyjanus_design:latest /usr/bin/perl easyJanus_design.sh -$flag 
+#############
+sudo docker run -v $tf:/app/targets.txt -v $gf:/app/input.fasta -v $od:/app/output/ easyjanus_design:latest /usr/bin/perl easyJanus_design.sh -$flag 
+#############
 
+if [ -s $od/targets_design.csv ]; then
 mv -f $od/targets_design.csv $od/$base\_design.csv
+fi
+
+if [ -s $od/targets_fragments.fasta ]; then
 mv -f $od/targets_fragments.fasta $od/$base\_fragments.fasta
+fi
+
 if [ -s $od/targets_skipped.txt ]; then
 mv -f $od/targets_skipped.txt $od/$base\_skipped.txt
 else
-mv -f $od/targets_skipped.txt $od/$base\_skipped.txt
 rm -f $od/$base\_skipped.txt
 fi
 
