@@ -103,7 +103,7 @@ fi
 base=$(basename "${tf%.*}")
 
 #############
-sudo docker run -v $tf:/app/targets.txt -v $gf:/app/input.fasta -v $od:/app/output/ easyjanus_design:latest /usr/bin/perl easyJanus_design.sh -$flag 
+sudo docker run -v $tf:/app/targets.txt -v $gf:/app/input.fasta -v $od:/app/output/ admellodocker/easyjanus_design:latest /usr/bin/perl easyJanus_design.sh -$flag 
 #############
 
 if [ -s $od/targets_design.csv ]; then
